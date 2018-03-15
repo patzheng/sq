@@ -18,6 +18,7 @@ model.add(Activation('tanh'))
 sgd = SGD(lr=0.3)
 # sgd 随机梯度下降法 loss：均方误差
 model.compile(optimizer=sgd, loss='mse')
+
 # model.compile(optimizer='sgd', loss='mse')
 
 x_train, y_train = DataBuilder.getTrainForNoneLine()
