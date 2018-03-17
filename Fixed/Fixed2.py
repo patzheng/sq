@@ -40,3 +40,4 @@ with tf.Session() as sess:
         if step % 100 == 0:
             print(sess.run(Weight))
             print(sess.run(biases))
+            print(sess.run(optimizer, feed_dict={train_x: axis_x, train_y: axis_y}))
