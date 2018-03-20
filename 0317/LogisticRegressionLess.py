@@ -13,6 +13,7 @@ def buildModel():
                         [5, 1], [7, 2], [14, 9], [10, 6], [21, 8], [19, 16]])
     train_y = np.array([[1], [1], [1], [1], [1], [1],
                         [0], [0], [0], [0], [0], [0]])
+    
     model = Sequential()
     model.add(Dense(units=1, input_dim=2, activation=None, use_bias=False))
     model.add(Activation('sigmoid'))
