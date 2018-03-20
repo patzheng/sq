@@ -4,7 +4,8 @@ from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from PIL import Image
 import numpy as np
 
-
+'''
+'''
 def load_data():
     data = np.empty((100, 1, 50, 28), dtype="float32")
     label = np.empty((100,), dtype="uint8")
