@@ -36,6 +36,7 @@ sgd = SGD(lr=0.1)
 
 model.compile(
     optimizer=sgd,
+    #loss='categorical_crossentropy'
     loss='mse',
     # 可以输出准确率
     metrics=['accuracy']
