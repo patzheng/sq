@@ -11,8 +11,8 @@ import collections
 import matplotlib.pyplot as plt
 
 
-def imageRegex():
-    im = Image.open('down/X7U9O2U7L5X8U8G5H3N6S4S1V2V4I4A6.jpeg')
+def get_color_coordinate(file_name, base_path):
+    im = Image.open(base_path + file_name)
     rgb_count = []
     im = im.convert('RGB')
     width = im.size[0]
@@ -34,6 +34,7 @@ def imageRegex():
     max_color = []
     max_color_coordinate = {}
     max_color_min_max = {}
+    max_color_x_coordinate = []
     for max_four_color in max_four:
         max_color.append(max_four_color[0])
         max_color_coordinate[max_four_color[0]] = [];
@@ -58,9 +59,15 @@ def imageRegex():
     for k, v in max_color_coordinate.items():
         max_color_min_max[k].append(min(v))
         max_color_min_max[k].append(max(v))
-    print(max_color_min_max)
+        max_color_x_coordinate.append(min(v))
+        max_color_x_coordinate.append(max(v))
 
+    print(max_color_min_max)
+    print(max_color_x_coordinate)
+    max_color_x_coordinate.sort()
+    print('xx', max_color_x_coordinate)
+    return max_color_coordinate
 
 
 if __name__ == "__main__":
-    imageRegex()
+    get_color_coordinate('V5M5H3M1W1V4D0L4H0S3F8L4Z8E9F0Z0.jpeg', 'down/')

@@ -7,6 +7,7 @@ import random
 import time
 from PIL import Image
 import shutil
+import collections
 
 
 def down_image(img_url, base_path='down/', batch_size=1, sleep_time=5):
@@ -44,11 +45,27 @@ def split_image_new(filename, base_path='down/', split_size=4, target_path='spli
     im = Image.open(base_path + filename)
     rgb_im = im.convert('RGB')
     # for i in range(split_size):
-    #m n e y
-    rgb_im.crop((0, 0, 60, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-    rgb_im.crop((61, 0, 92, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-    rgb_im.crop((93, 0, 128, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-    rgb_im.crop((128, 0, 160, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
+    # m n e y
+    rgb_im.crop((0, 0, 29, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
+    rgb_im.crop((30, 0, 58, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
+    rgb_im.crop((59, 0, 104, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
+    rgb_im.crop((105, 0, 138, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
+
+
+# 160，70
+def split_image_new_new(filename, base_path='down/', split_size=4, target_path='split/'):
+    im = Image.open(base_path + filename)
+    width = im.size[0]
+    height = im.size[1]
+    max_color_x_coordinate = get_color_coordinate(filename, base_path)
+    rgb_im = im.convert('RGB')
+
+    rgb_im.crop((0, 0, max_color_x_coordinate[2], height)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
+    rgb_im.crop((max_color_x_coordinate[1], 0, max_color_x_coordinate[4], height)).save(
+        target_path + g_rand_file_name('jpeg'))  # 160，70
+    rgb_im.crop((max_color_x_coordinate[3], 0, max_color_x_coordinate[6], height)).save(
+        target_path + g_rand_file_name('jpeg'))  # 160，70
+    rgb_im.crop((max_color_x_coordinate[5], 0, width, height)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
 
 
 def coverL(filename, base_path='split/', target_path='gray/'):
@@ -83,5 +100,63 @@ def flow():
         coverL(filename=file)
 
 
+def get_color_coordinate(file_name, base_path):
+    im = Image.open(base_path + file_name)
+    rgb_count = []
+    im = im.convert('RGB')
+    width = im.size[0]
+    height = im.size[1]
+    for i in range(width):
+        for j in range(height):
+            r, g, b = im.getpixel((i, j))
+            if r < 255 and r > 240 and g < 255 and g > 240 and b < 255 and g > 240:
+                r = 255
+                g = 255
+                b = 255
+            if r == 255 and g == 255 and b == 255:
+                continue
+            else:
+                rgb = (str(r) + ',' + str(g) + ',' + str(b))
+                rgb_count.append(rgb)
+    m = collections.Counter(rgb_count)
+    max_four = m.most_common(4)
+    max_color = []
+    max_color_coordinate = {}
+    max_color_min_max = {}
+    max_color_x_coordinate = []
+    for max_four_color in max_four:
+        max_color.append(max_four_color[0])
+        max_color_coordinate[max_four_color[0]] = [];
+        max_color_min_max[max_four_color[0]] = [];
+
+    print(max_color_coordinate)
+    width = im.size[0]
+    height = im.size[1]
+    for i in range(width):
+        for j in range(height):
+            r, g, b = im.getpixel((i, j))
+            if r < 255 and r > 240 and g < 255 and g > 240 and b < 255 and g > 240:
+                r = 255
+                g = 255
+                b = 255
+            if r == 255 and g == 255 and b == 255:
+                continue
+            else:
+                rgb = (str(r) + ',' + str(g) + ',' + str(b))
+                if rgb in max_color:
+                    max_color_coordinate[rgb].append(i)
+    for k, v in max_color_coordinate.items():
+        max_color_min_max[k].append(min(v))
+        max_color_min_max[k].append(max(v))
+        max_color_x_coordinate.append(min(v))
+        max_color_x_coordinate.append(max(v))
+
+    print(max_color_min_max)
+    print(max_color_x_coordinate)
+    max_color_x_coordinate.sort()
+    print('xx', max_color_x_coordinate)
+    return max_color_x_coordinate
+
+
 if __name__ == "__main__":
-    split_image_new('X7U9O2U7L5X8U8G5H3N6S4S1V2V4I4A6.jpeg')
+    split_image_new_new('X7U9O2U7L5X8U8G5H3N6S4S1V2V4I4A6.jpeg')
