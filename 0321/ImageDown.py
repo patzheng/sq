@@ -34,29 +34,6 @@ def split_image(filename, base_path='down/', split_size=4, target_path='split/')
     im = Image.open(base_path + filename)
     width = im.size[0]
     height = im.size[1]
-    step = width / split_size;
-    rgb_im = im.convert('RGB')
-    for i in range(split_size):
-        rgb_im.crop((i * step, 0, (i + 1) * step, height)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-
-
-# 160，70
-def split_image_new(filename, base_path='down/', split_size=4, target_path='split/'):
-    im = Image.open(base_path + filename)
-    rgb_im = im.convert('RGB')
-    # for i in range(split_size):
-    # m n e y
-    rgb_im.crop((0, 0, 29, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-    rgb_im.crop((30, 0, 58, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-    rgb_im.crop((59, 0, 104, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-    rgb_im.crop((105, 0, 138, 70)).save(target_path + g_rand_file_name('jpeg'))  # 160，70
-
-
-# 160，70
-def split_image_new_new(filename, base_path='down/', split_size=4, target_path='split/'):
-    im = Image.open(base_path + filename)
-    width = im.size[0]
-    height = im.size[1]
     max_color_x_coordinate = get_color_coordinate(filename, base_path)
     rgb_im = im.convert('RGB')
 
@@ -80,15 +57,15 @@ def flow():
     down_url = 'http://shixin.court.gov.cn/captcha.do'
 
     if os.path.exists(down_base):
-        shutil.rmtree(down_base)
+        # shutil.rmtree(down_base)
         shutil.rmtree(split_base)
         shutil.rmtree(gray_base)
 
-    os.mkdir(down_base)
+    # os.mkdir(down_base)
     os.mkdir(split_base)
     os.mkdir(gray_base)
 
-    down_image(down_url, batch_size=4, sleep_time=2)
+    down_image(down_url, batch_size=2000, sleep_time=2)
 
     down_images = [f for f in listdir(down_base) if isfile(join(down_base, f))]
     for file in down_images:
@@ -100,12 +77,14 @@ def flow():
         coverL(filename=file)
 
 
-def get_color_coordinate(file_name, base_path):
+def get_color_coordinate(file_name, base_path, max_color_number=4):
     im = Image.open(base_path + file_name)
-    rgb_count = []
+
+    image_rgb_collection = []
     im = im.convert('RGB')
     width = im.size[0]
     height = im.size[1]
+
     for i in range(width):
         for j in range(height):
             r, g, b = im.getpixel((i, j))
@@ -117,21 +96,22 @@ def get_color_coordinate(file_name, base_path):
                 continue
             else:
                 rgb = (str(r) + ',' + str(g) + ',' + str(b))
-                rgb_count.append(rgb)
-    m = collections.Counter(rgb_count)
-    max_four = m.most_common(4)
+                image_rgb_collection.append(rgb)
+    m = collections.Counter(image_rgb_collection)
+    print(m)
+
+    max_four = m.most_common(max_color_number)
+    print(max_four)
+
     max_color = []
     max_color_coordinate = {}
     max_color_min_max = {}
-    max_color_x_coordinate = []
+
     for max_four_color in max_four:
         max_color.append(max_four_color[0])
         max_color_coordinate[max_four_color[0]] = [];
         max_color_min_max[max_four_color[0]] = [];
 
-    print(max_color_coordinate)
-    width = im.size[0]
-    height = im.size[1]
     for i in range(width):
         for j in range(height):
             r, g, b = im.getpixel((i, j))
@@ -145,18 +125,150 @@ def get_color_coordinate(file_name, base_path):
                 rgb = (str(r) + ',' + str(g) + ',' + str(b))
                 if rgb in max_color:
                     max_color_coordinate[rgb].append(i)
+
+    max_color_x_coordinate = []
     for k, v in max_color_coordinate.items():
         max_color_min_max[k].append(min(v))
         max_color_min_max[k].append(max(v))
         max_color_x_coordinate.append(min(v))
         max_color_x_coordinate.append(max(v))
-
-    print(max_color_min_max)
-    print(max_color_x_coordinate)
     max_color_x_coordinate.sort()
-    print('xx', max_color_x_coordinate)
+    print('x_coordinate:', max_color_x_coordinate)
     return max_color_x_coordinate
 
 
+def get_color_coordinate_new(file_name, base_path, max_color_number=4):
+    # 打开图片
+    im = Image.open(base_path + file_name)
+    # 从四通道转单通道
+    im = im.convert('RGB')
+    # 图片宽度
+    width = im.size[0]
+    # 图片高度
+    height = im.size[1]
+
+    # 颜色对应的数量
+    image_rgb_str_collection = []
+
+    for i in range(width):
+        for j in range(height):
+            r, g, b = im.getpixel((i, j))
+            if r < 255 and r > 240 and g < 255 and g > 240 and b < 255 and g > 240:
+                r = 255
+                g = 255
+                b = 255
+            if r == 255 and g == 255 and b == 255:
+                continue
+            else:
+                rgb = (str(r) + ',' + str(g) + ',' + str(b))
+                image_rgb_str_collection.append(rgb)
+
+    # 得到最大的四个像素的RGB逗号组装的 字符串 和 数量
+    max_color_count_dict = collections.Counter(image_rgb_str_collection).most_common(max_color_number + 4)
+
+    print('max_four', max_color_count_dict)
+
+    max_more_like = {}
+    for max_color_count_ele in max_color_count_dict:
+        rgb_str = max_color_count_ele[0]
+        rgb = rgb_str.split(',')
+        r = rgb[0]
+        g = rgb[1]
+        b = rgb[2]
+
+        r_max = int(r) + 5
+        r_min = int(r) - 5
+
+        g_max = int(g) + 5
+        g_min = int(g) - 5
+
+        b_max = int(b) + 5
+        b_min = int(b) - 5
+
+        for i in range(r_min, r_max):
+            for j in range(g_min, g_max):
+                for k in range(b_min, b_max):
+                    rgb = (str(i) + ',' + str(j) + ',' + str(k))
+                    max_more_like[rgb] = rgb_str
+
+    print('max_more_like', max_more_like)
+    print('max_more_like type', type(max_more_like))
+    print('max_more_like keys ', type(max_more_like.keys()))
+    print('max_more_like keys type', max_more_like.keys())
+
+    for i in range(width):
+        for j in range(height):
+            r, g, b = im.getpixel((i, j))
+            if r < 255 and r > 240 and g < 255 and g > 240 and b < 255 and g > 240:
+                r = 255
+                g = 255
+                b = 255
+            if r == 255 and g == 255 and b == 255:
+                continue
+            else:
+                rgb = (str(r) + ',' + str(g) + ',' + str(b))
+                if max_more_like.__contains__(rgb):
+                    stand_color = max_more_like.get(rgb).split(',')
+                    im.putpixel([i, j], (int(stand_color[0]), int(stand_color[1]), int(stand_color[2])))
+
+    # 最大的颜色集合
+    max_color = []
+    # 最大的颜色集合
+    max_color_coordinate = {}
+    # 最大最小颜色坐标
+    max_color_min_max = {}
+
+    for max_four_color in max_color_count_dict:
+        max_color.append(max_four_color[0])
+        max_color_coordinate[max_four_color[0]] = [];
+        max_color_min_max[max_four_color[0]] = [];
+
+    for i in range(width):
+        for j in range(height):
+            r, g, b = im.getpixel((i, j))
+            if r < 255 and r > 240 and g < 255 and g > 240 and b < 255 and g > 240:
+                r = 255
+                g = 255
+                b = 255
+            if r == 255 and g == 255 and b == 255:
+                continue
+            else:
+                rgb = (str(r) + ',' + str(g) + ',' + str(b))
+                if rgb in max_color:
+                    max_color_coordinate[rgb].append(i)
+
+    image_rgb_str_collection_new=[]
+    for i in range(width):
+        for j in range(height):
+            r, g, b = im.getpixel((i, j))
+            if r < 255 and r > 240 and g < 255 and g > 240 and b < 255 and g > 240:
+                r = 255
+                g = 255
+                b = 255
+            if r == 255 and g == 255 and b == 255:
+                continue
+            else:
+                rgb = (str(r) + ',' + str(g) + ',' + str(b))
+                image_rgb_str_collection_new.append(rgb)
+
+    # 得到最大的四个像素的RGB逗号组装的 字符串 和 数量
+    max_color_count_dict_new = collections.Counter(image_rgb_str_collection_new).most_common(max_color_number)
+
+    print('max_four_new', max_color_count_dict_new)
+
+    max_color_x_coordinate = []
+    for k, v in max_color_coordinate.items():
+#        max_color_min_max[k].append(min(v))
+#        max_color_min_max[k].append(max(v))
+#        max_color_x_coordinate.append(min(v))
+#        max_color_x_coordinate.append(max(v))
+        print(1)
+    max_color_x_coordinate.sort()
+    print('x_coordinate:', max_color_x_coordinate)
+    return max_color_x_coordinate
+
+
+
+
 if __name__ == "__main__":
-    split_image_new_new('X7U9O2U7L5X8U8G5H3N6S4S1V2V4I4A6.jpeg')
+    max_color_x_coordinate = get_color_coordinate_new('K2E2X9R5I0A6E4E8I7X8K1A5R0Q2X7E0.jpeg', 'down/')
